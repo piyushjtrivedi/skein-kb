@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+pydantic-settings
+python-multipart
+pytest
+pytesseract
+Pillow
+requests
+trafilatura
+pypdfium2
+ollama

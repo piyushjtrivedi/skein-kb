@@ -1,0 +1,889 @@
+<title>Skein Knowledge Graph</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #F4F6FA;
+    --surface: #FFFFFF;
+    --surface-2: #E9EDF4;
+    --ink: #171B26;
+    --ink-dim: #5B6472;
+    --ink-faint: #8891A0;
+    --border: #DBE1EA;
+    --accent: #1E6E6B;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #DCEEEB;
+
+    --kind-concept: #3A5BD9;
+    --kind-equation: #B9740A;
+    --kind-entity: #BC3E79;
+
+    --rel-prerequisite: #7A50C2;
+    --rel-derivation: #1F8A52;
+    --rel-application: #C96A1F;
+    --rel-related: #8891A0;
+
+    --shadow: 0 1px 2px rgba(23,27,38,0.04), 0 8px 24px rgba(23,27,38,0.06);
+    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+    --font-body: "Source Sans 3", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0D1117;
+      --surface: #151B24;
+      --surface-2: #1C2430;
+      --ink: #E7ECF5;
+      --ink-dim: #9BA7B9;
+      --ink-faint: #6B7585;
+      --border: #263040;
+      --accent: #4FD9C9;
+      --accent-ink: #0A1613;
+      --accent-soft: #163330;
+
+      --kind-concept: #8AA0FF;
+      --kind-equation: #E3A84B;
+      --kind-entity: #E884B3;
+
+      --rel-prerequisite: #B79AE8;
+      --rel-derivation: #5FCB94;
+      --rel-application: #F2A567;
+      --rel-related: #7D8696;
+
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.4);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0D1117;
+    --surface: #151B24;
+    --surface-2: #1C2430;
+    --ink: #E7ECF5;
+    --ink-dim: #9BA7B9;
+    --ink-faint: #6B7585;
+    --border: #263040;
+    --accent: #4FD9C9;
+    --accent-ink: #0A1613;
+    --accent-soft: #163330;
+
+    --kind-concept: #8AA0FF;
+    --kind-equation: #E3A84B;
+    --kind-entity: #E884B3;
+
+    --rel-prerequisite: #B79AE8;
+    --rel-derivation: #5FCB94;
+    --rel-application: #F2A567;
+    --rel-related: #7D8696;
+
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+  ::selection { background: var(--accent-soft); }
+
+  .app {
+    display: grid;
+    grid-template-columns: 272px 1fr 332px;
+    grid-template-rows: auto 1fr;
+    height: 100%;
+  }
+
+  header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+  }
+  .title-block { display: flex; align-items: baseline; gap: 14px; min-width: 0; }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .subtitle {
+    color: var(--ink-dim);
+    font-size: 12.5px;
+    max-width: 46ch;
+    text-wrap: balance;
+  }
+  .stats { display: flex; gap: 22px; flex-shrink: 0; }
+  .stat { text-align: right; }
+  .stat .n {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-size: 19px;
+    color: var(--ink);
+    display: block;
+    line-height: 1.1;
+  }
+  .stat .l {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  aside.sidebar, aside.detail {
+    background: var(--surface);
+    overflow-y: auto;
+    padding: 16px 16px 24px;
+  }
+  aside.sidebar { border-right: 1px solid var(--border); }
+  aside.detail { border-left: 1px solid var(--border); }
+
+  .section { margin-bottom: 20px; }
+  .section:last-child { margin-bottom: 0; }
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 8px;
+  }
+
+  input[type="search"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--surface-2);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 13px;
+  }
+  input[type="search"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    cursor: pointer;
+    font-size: 12.5px;
+  }
+  .filter-row input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; flex-shrink: 0; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .swatch.dot { border-radius: 50%; }
+  .filter-row .name { flex: 1; color: var(--ink); }
+  .filter-row .count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .slider-row { display: flex; align-items: center; gap: 10px; }
+  input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .slider-value {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    min-width: 2.6em;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12.5px;
+    padding: 2px 0;
+  }
+  .toggle-row .hint { color: var(--ink-faint); font-size: 11px; display: block; margin-top: 1px; }
+  .switch {
+    position: relative;
+    width: 34px;
+    height: 19px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .switch.on { background: var(--accent); border-color: var(--accent); }
+  .switch .knob {
+    position: absolute;
+    top: 1px; left: 1px;
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    background: var(--surface);
+    transition: transform 0.15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  }
+  .switch.on .knob { transform: translateX(15px); background: var(--accent-ink); }
+
+  button.reset, button.relayout {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--surface-2);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.reset:hover, button.relayout:hover { border-color: var(--accent); color: var(--accent); }
+
+  main.canvas-wrap { position: relative; background: var(--surface-2); min-width: 0; }
+  #network { width: 100%; height: 100%; }
+
+  .canvas-hint {
+    position: absolute;
+    top: 10px; left: 10px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    max-width: calc(100% - 32px);
+  }
+
+  .canvas-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+  }
+  .canvas-empty .box {
+    max-width: 42ch;
+    color: var(--ink-dim);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .canvas-empty .box h2 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+  .canvas-empty code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+  }
+
+  .hover-tip {
+    position: absolute;
+    max-width: 240px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 8px 10px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 20;
+  }
+  .hover-tip .k { font-weight: 600; color: var(--ink); display: block; margin-bottom: 2px; }
+  .hover-tip .d { color: var(--ink-dim); font-size: 11.5px; line-height: 1.4; }
+
+  .kind-badge, .rel-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 7px 2px 5px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+  .kind-badge .dot, .rel-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  .detail-empty { color: var(--ink-faint); font-size: 12.5px; }
+  .detail-overview h2, .detail-node h2 {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+  .detail-node .badges { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .detail-node .desc { font-size: 13px; color: var(--ink); margin-bottom: 12px; }
+  .detail-node .quote {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    border-left: 2px solid var(--border);
+    padding-left: 10px;
+    margin: 0 0 14px;
+  }
+  .conn-list { display: flex; flex-direction: column; gap: 8px; }
+  .conn-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    background: var(--surface);
+  }
+  .conn-item:hover { border-color: var(--accent); }
+  .conn-item .row1 { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 4px; }
+  .conn-item .dir { font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); flex-shrink: 0; }
+  .conn-item .target { font-weight: 600; font-size: 12.5px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .conn-item .sim { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .conn-item .rationale { font-size: 11.5px; color: var(--ink-dim); line-height: 1.4; }
+
+  .top-list { display: flex; flex-direction: column; gap: 6px; }
+  .top-row { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 3px 0; }
+  .top-row .deg {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint);
+    min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .top-row .nm { font-size: 12px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top-row:hover .nm { color: var(--accent); }
+
+  .insight-line { font-size: 12.5px; color: var(--ink-dim); margin: 0 0 14px; line-height: 1.55; }
+  .insight-line b { color: var(--ink); font-weight: 600; }
+
+  @media (max-width: 880px) {
+    body { overflow-y: auto; overflow-x: hidden; }
+    .app { display: block; height: auto; }
+    header { position: sticky; top: 0; z-index: 30; }
+    aside.sidebar, aside.detail { border: none; border-bottom: 1px solid var(--border); max-height: none; }
+    main.canvas-wrap { height: 62vh; }
+  }
+</style>
+
+<div class="app">
+  <header>
+    <div class="title-block">
+      <h1>Skein Knowledge Graph</h1>
+      <div class="subtitle">Live view of <code style="font-family:var(--font-mono);font-size:11.5px">GET /api/knowledge/graph</code> — concepts, equations, and entities linked by embedding similarity + LLM-judged relationship type.</div>
+    </div>
+    <div class="stats" id="statStrip"></div>
+  </header>
+
+  <aside class="sidebar">
+    <div class="section">
+      <p class="section-label">Search</p>
+      <input type="search" id="search" placeholder="Find a concept, equation, entity…" disabled />
+    </div>
+    <div class="section">
+      <p class="section-label">Node kind</p>
+      <div id="kindFilters"></div>
+    </div>
+    <div class="section">
+      <p class="section-label">Relationship</p>
+      <div id="relFilters"></div>
+    </div>
+    <div class="section">
+      <p class="section-label">Source</p>
+      <div id="sourceFilters"></div>
+    </div>
+    <div class="section">
+      <p class="section-label">Min. embedding similarity</p>
+      <div class="slider-row">
+        <input type="range" id="simSlider" min="0" max="1" step="0.01" value="0" disabled />
+        <span class="slider-value" id="simValue">0.00</span>
+      </div>
+    </div>
+    <div class="section">
+      <div class="toggle-row">
+        <div>
+          Cross-source links only
+          <span class="hint">Edges between concepts from different sources</span>
+        </div>
+        <div class="switch" id="crossToggle"><div class="knob"></div></div>
+      </div>
+    </div>
+    <div class="section">
+      <button class="reset" id="resetBtn">Reset filters</button>
+    </div>
+    <div class="section">
+      <button class="relayout" id="relayoutBtn">Re-run layout</button>
+    </div>
+  </aside>
+
+  <main class="canvas-wrap">
+    <div id="network"></div>
+    <div class="canvas-hint" id="canvasHint">loading graph…</div>
+  </main>
+
+  <aside class="detail" id="detailPanel">
+    <p class="detail-empty">Click a node once the graph loads to see its details here.</p>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/standalone/umd/vis-network.min.js"></script>
+<script>
+(function () {
+  var hint = document.getElementById("canvasHint");
+  var canvasWrap = document.querySelector(".canvas-wrap");
+
+  function showEmptyState(title, body) {
+    hint.hidden = true;
+    var box = document.createElement("div");
+    box.className = "canvas-empty";
+    box.innerHTML = '<div class="box"><h2>' + title + "</h2><p>" + body + "</p></div>";
+    canvasWrap.appendChild(box);
+  }
+
+  if (typeof vis === "undefined") {
+    showEmptyState("Graph library failed to load", "The vis-network script from cdnjs didn't load. Check your network connection and reload.");
+    return;
+  }
+
+  fetch("/api/knowledge/graph")
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      var nodes = data.nodes.map(function (n) {
+        return {
+          id: n.concept_id, kind: n.kind, name: n.name, description: n.description,
+          quote: n.quote, source_id: n.source_id, source_name: n.source_name
+        };
+      });
+      var edges = data.edges.map(function (e) {
+        return {
+          id: e.link_id, from: e.from_concept_id, to: e.to_concept_id,
+          type: e.relationship_type, rationale: e.rationale, similarity: e.similarity
+        };
+      });
+      if (!nodes.length) {
+        showEmptyState(
+          "No concepts linked yet",
+          "Extract at least one source (<code>POST /api/sources/{id}/extract</code>) and run <code>POST /api/knowledge/link</code>, then reload this page."
+        );
+        document.getElementById("statStrip").innerHTML = "";
+        return;
+      }
+      ["search", "simSlider"].forEach(function (id) { document.getElementById(id).disabled = false; });
+      renderGraph(nodes, edges);
+    })
+    .catch(function (err) {
+      showEmptyState("Couldn't load the graph", "Request to <code>/api/knowledge/graph</code> failed: " + escapeHtmlStatic(err.message || String(err)));
+    });
+
+  function escapeHtmlStatic(s) {
+    return String(s || "").replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function renderGraph(nodes, edges) {
+    var byId = {};
+    nodes.forEach(function (n) { byId[n.id] = n; });
+
+    var KIND_LABEL = { concept: "Concept", equation: "Equation", entity: "Entity" };
+    var REL_LABEL = { prerequisite: "Prerequisite", derivation: "Derivation", application: "Application", related: "Related" };
+
+    function cssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    var kindCounts = {}, relCounts = {}, sourceCounts = {};
+    var sourceNames = [];
+    nodes.forEach(function (n) {
+      kindCounts[n.kind] = (kindCounts[n.kind] || 0) + 1;
+      if (n.source_name) {
+        if (sourceCounts[n.source_name] === undefined) { sourceCounts[n.source_name] = 0; sourceNames.push(n.source_name); }
+        sourceCounts[n.source_name]++;
+      }
+    });
+    edges.forEach(function (e) { relCounts[e.type] = (relCounts[e.type] || 0) + 1; });
+
+    var crossCount = 0;
+    edges.forEach(function (e) {
+      var a = byId[e.from], b = byId[e.to];
+      if (a && b && a.source_name && b.source_name && a.source_name !== b.source_name) crossCount++;
+    });
+
+    var degree = {};
+    edges.forEach(function (e) {
+      degree[e.from] = (degree[e.from] || 0) + 1;
+      degree[e.to] = (degree[e.to] || 0) + 1;
+    });
+    var topConnected = Object.keys(degree)
+      .map(function (id) { return { id: id, d: degree[id] }; })
+      .sort(function (a, b) { return b.d - a.d; })
+      .slice(0, 8);
+
+    document.getElementById("statStrip").innerHTML = [
+      stat(nodes.length, "concepts"),
+      stat(edges.length, "links"),
+      stat(sourceNames.length, "sources"),
+      stat(crossCount, "cross-source")
+    ].join("");
+    function stat(n, l) {
+      return '<div class="stat"><span class="n">' + n.toLocaleString() + '</span><span class="l">' + l + '</span></div>';
+    }
+
+    var state = {
+      kinds: { concept: true, equation: true, entity: true },
+      rels: { prerequisite: true, derivation: true, application: true, related: true },
+      sources: {},
+      minSim: 0,
+      crossOnly: false,
+      search: ""
+    };
+    sourceNames.forEach(function (s) { state.sources[s] = true; });
+
+    function kindColor(k) { return cssVar("--kind-" + k); }
+    function relColor(r) { return cssVar("--rel-" + r); }
+
+    function buildCheckRow(container, label, count, color, dotShape, onChange) {
+      var row = document.createElement("label");
+      row.className = "filter-row";
+      var box = document.createElement("input");
+      box.type = "checkbox";
+      box.checked = true;
+      box.addEventListener("change", function () { onChange(box.checked); });
+      var sw = document.createElement("span");
+      sw.className = "swatch" + (dotShape ? " dot" : "");
+      sw.style.background = color;
+      var name = document.createElement("span");
+      name.className = "name";
+      name.textContent = label;
+      var cnt = document.createElement("span");
+      cnt.className = "count";
+      cnt.textContent = count;
+      row.appendChild(box); row.appendChild(sw); row.appendChild(name); row.appendChild(cnt);
+      container.appendChild(row);
+      return box;
+    }
+
+    var kindFiltersEl = document.getElementById("kindFilters");
+    Object.keys(KIND_LABEL).forEach(function (k) {
+      if (!kindCounts[k]) return;
+      buildCheckRow(kindFiltersEl, KIND_LABEL[k], kindCounts[k], kindColor(k), true, function (checked) {
+        state.kinds[k] = checked; render();
+      });
+    });
+
+    var relFiltersEl = document.getElementById("relFilters");
+    ["prerequisite", "derivation", "application", "related"].forEach(function (r) {
+      if (!relCounts[r]) return;
+      buildCheckRow(relFiltersEl, REL_LABEL[r], relCounts[r], relColor(r), false, function (checked) {
+        state.rels[r] = checked; render();
+      });
+    });
+
+    var sourceFiltersEl = document.getElementById("sourceFilters");
+    sourceNames.forEach(function (s) {
+      buildCheckRow(sourceFiltersEl, s, sourceCounts[s], cssVar("--ink-faint"), true, function (checked) {
+        state.sources[s] = checked; render();
+      });
+    });
+
+    document.getElementById("simSlider").addEventListener("input", function (e) {
+      state.minSim = parseFloat(e.target.value);
+      document.getElementById("simValue").textContent = state.minSim.toFixed(2);
+      render();
+    });
+
+    var crossToggleEl = document.getElementById("crossToggle");
+    crossToggleEl.addEventListener("click", function () {
+      state.crossOnly = !state.crossOnly;
+      crossToggleEl.classList.toggle("on", state.crossOnly);
+      render();
+    });
+
+    document.getElementById("search").addEventListener("input", function (e) {
+      state.search = e.target.value.trim().toLowerCase();
+      render();
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", function () {
+      document.querySelectorAll('.filter-row input[type="checkbox"]').forEach(function (c) { c.checked = true; });
+      state.kinds = { concept: true, equation: true, entity: true };
+      state.rels = { prerequisite: true, derivation: true, application: true, related: true };
+      sourceNames.forEach(function (s) { state.sources[s] = true; });
+      state.minSim = 0;
+      document.getElementById("simSlider").value = 0;
+      document.getElementById("simValue").textContent = "0.00";
+      state.crossOnly = false;
+      crossToggleEl.classList.remove("on");
+      state.search = "";
+      document.getElementById("search").value = "";
+      render();
+    });
+
+    var visNodes = new vis.DataSet(nodes.map(function (n) {
+      return {
+        id: n.id,
+        label: trimLabel(n.name),
+        shape: "dot",
+        size: 8,
+        color: { background: kindColor(n.kind), border: kindColor(n.kind), highlight: { background: kindColor(n.kind), border: cssVar("--ink") } },
+        font: { color: cssVar("--ink-dim"), size: 11, face: "Source Sans 3, sans-serif", strokeWidth: 0 }
+      };
+    }));
+
+    var visEdges = new vis.DataSet(edges.map(function (e) {
+      return {
+        id: e.id,
+        from: e.from,
+        to: e.to,
+        color: { color: relColor(e.type), opacity: 0.55, highlight: cssVar("--ink") },
+        width: 1,
+        smooth: { type: "continuous", roundness: 0.2 },
+        arrows: { to: { enabled: true, scaleFactor: 0.35 } }
+      };
+    }));
+
+    function trimLabel(name) {
+      return name.length > 28 ? name.slice(0, 26) + "…" : name;
+    }
+
+    // Seed real starting positions (a ring per source, concentric by
+    // index within it) instead of vis-network's default near-origin
+    // jitter -- with hundreds of nodes, leaving them stacked on top of
+    // each other means the canvas looks empty until physics finishes.
+    var groups = {};
+    nodes.forEach(function (n) {
+      var key = n.source_name || "—";
+      (groups[key] = groups[key] || []).push(n);
+    });
+    var groupKeys = Object.keys(groups);
+    var ringGap = 420;
+    groupKeys.forEach(function (key, gi) {
+      var members = groups[key];
+      var cx = Math.cos((gi / groupKeys.length) * 2 * Math.PI) * (groupKeys.length > 1 ? ringGap : 0);
+      var cy = Math.sin((gi / groupKeys.length) * 2 * Math.PI) * (groupKeys.length > 1 ? ringGap : 0);
+      var radius = 60 + Math.sqrt(members.length) * 26;
+      members.forEach(function (n, i) {
+        var a = (i / members.length) * 2 * Math.PI;
+        n.__x = cx + Math.cos(a) * radius;
+        n.__y = cy + Math.sin(a) * radius;
+      });
+    });
+    visNodes.update(nodes.map(function (n) { return { id: n.id, x: n.__x, y: n.__y }; }));
+
+    var container = document.getElementById("network");
+    var network;
+    try {
+      network = new vis.Network(container, { nodes: visNodes, edges: visEdges }, {
+        autoResize: true,
+        layout: { improvedLayout: false },
+        physics: {
+          solver: "forceAtlas2Based",
+          forceAtlas2Based: { gravitationalConstant: -50, springLength: 80, springConstant: 0.08, damping: 0.5, avoidOverlap: 0.5 },
+          stabilization: { enabled: true, iterations: 120, fit: true },
+          minVelocity: 2,
+          timestep: 0.4
+        },
+        interaction: { hover: true, tooltipDelay: 999999, hideEdgesOnDrag: true, hideEdgesOnZoom: true },
+        nodes: { borderWidth: 1.5 },
+        edges: { selectionWidth: 2 }
+      });
+    } catch (err) {
+      hint.textContent = "Graph failed to render: " + (err && err.message ? err.message : err);
+      throw err;
+    }
+
+    network.fit({ animation: false });
+
+    var settled = false;
+    function settle() {
+      if (settled) return;
+      settled = true;
+      network.setOptions({ physics: false });
+      network.fit({ animation: { duration: 400, easingFunction: "easeInOutQuad" } });
+      hint.textContent = "drag to rearrange · scroll to zoom";
+      setTimeout(function () { hint.style.opacity = "0.55"; }, 1200);
+    }
+    hint.textContent = "stabilizing layout…";
+    network.on("stabilizationIterationsDone", settle);
+    setTimeout(settle, 5000);
+
+    document.getElementById("relayoutBtn").addEventListener("click", function () {
+      settled = false;
+      hint.style.opacity = "1";
+      hint.textContent = "stabilizing layout…";
+      network.setOptions({ physics: { solver: "forceAtlas2Based", stabilization: { enabled: true, iterations: 120, fit: true } } });
+      network.stabilize(120);
+      setTimeout(settle, 5000);
+    });
+
+    var tip = document.createElement("div");
+    tip.className = "hover-tip";
+    tip.hidden = true;
+    canvasWrap.appendChild(tip);
+
+    network.on("hoverNode", function (params) {
+      var n = byId[params.node];
+      if (!n) return;
+      tip.innerHTML = '<span class="k">' + escapeHtml(n.name) + '</span><span class="d">' + escapeHtml(truncate(n.description, 140)) + "</span>";
+      tip.hidden = false;
+      positionTip(params.event);
+    });
+    network.on("blurNode", function () { tip.hidden = true; });
+    container.addEventListener("mousemove", function (ev) {
+      if (!tip.hidden) positionTip({ pointer: { DOM: { x: ev.offsetX, y: ev.offsetY } } });
+    });
+    function positionTip(ev) {
+      var x = ev && ev.pointer ? ev.pointer.DOM.x : 0;
+      var y = ev && ev.pointer ? ev.pointer.DOM.y : 0;
+      tip.style.left = Math.min(x + 16, container.clientWidth - 250) + "px";
+      tip.style.top = Math.max(y - 10, 6) + "px";
+    }
+
+    function escapeHtml(s) {
+      return String(s || "").replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+    function truncate(s, n) { s = s || ""; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
+
+    function edgeVisible(e) {
+      if (!state.rels[e.type]) return false;
+      if (e.similarity < state.minSim) return false;
+      if (state.crossOnly) {
+        var a = byId[e.from], b = byId[e.to];
+        if (!a || !b || a.source_name === b.source_name) return false;
+      }
+      var fromNode = byId[e.from], toNode = byId[e.to];
+      if (!nodeVisible(fromNode) || !nodeVisible(toNode)) return false;
+      return true;
+    }
+    function nodeVisible(n) {
+      if (!n) return false;
+      if (!state.kinds[n.kind]) return false;
+      if (n.source_name && !state.sources[n.source_name]) return false;
+      return true;
+    }
+    function matchesSearch(n) {
+      if (!state.search) return null;
+      return n.name.toLowerCase().indexOf(state.search) !== -1;
+    }
+
+    function render() {
+      visEdges.update(edges.map(function (e) { return { id: e.id, hidden: !edgeVisible(e) }; }));
+      visNodes.update(nodes.map(function (n) {
+        var visible = nodeVisible(n);
+        var match = matchesSearch(n);
+        var dimmed = state.search && match === false;
+        var baseColor = kindColor(n.kind);
+        return {
+          id: n.id,
+          hidden: !visible,
+          opacity: dimmed ? 0.18 : 1,
+          size: match ? 13 : 8,
+          borderWidth: match ? 3 : 1.5,
+          color: { background: baseColor, border: match ? cssVar("--accent") : baseColor }
+        };
+      }));
+    }
+    render();
+
+    var detailEl = document.getElementById("detailPanel");
+
+    function renderOverview() {
+      var html = '<div class="detail-overview">';
+      html += "<h2>At a glance</h2>";
+      html += '<p class="insight-line">A local model read each source\'s text and pulled out <b>' + nodes.length.toLocaleString() + '</b> concepts, equations, and named entities. Embedding similarity then proposed candidate pairs, and the same model judged <b>' + edges.length.toLocaleString() + '</b> of them as a real relationship.</p>';
+      if (crossCount) {
+        html += '<p class="insight-line"><b>' + crossCount.toLocaleString() + '</b> of those links connect concepts from <b>different sources</b> — the part a per-document reading list can\'t show on its own.</p>';
+      }
+      html += '<p class="section-label">Most connected</p>';
+      html += '<div class="top-list">';
+      topConnected.forEach(function (t) {
+        var n = byId[t.id];
+        if (!n) return;
+        html += '<div class="top-row" data-id="' + n.id + '"><span class="deg">' + t.d + '</span><span class="swatch dot" style="background:' + kindColor(n.kind) + ';width:7px;height:7px;flex-shrink:0"></span><span class="nm">' + escapeHtml(n.name) + '</span></div>';
+      });
+      html += "</div></div>";
+      detailEl.innerHTML = html;
+      detailEl.querySelectorAll(".top-row").forEach(function (row) {
+        row.addEventListener("click", function () { selectNode(row.getAttribute("data-id")); });
+      });
+    }
+
+    function renderNodeDetail(id) {
+      var n = byId[id];
+      if (!n) return renderOverview();
+      var connEdges = edges.filter(function (e) { return e.from === id || e.to === id; })
+        .sort(function (a, b) { return b.similarity - a.similarity; });
+
+      var html = '<div class="detail-node">';
+      html += "<h2>" + escapeHtml(n.name) + "</h2>";
+      html += '<div class="badges">';
+      html += '<span class="kind-badge"><span class="dot" style="background:' + kindColor(n.kind) + '"></span>' + KIND_LABEL[n.kind] + "</span>";
+      if (n.source_name) html += '<span class="kind-badge">' + escapeHtml(n.source_name) + "</span>";
+      html += "</div>";
+      html += '<p class="desc">' + escapeHtml(n.description) + "</p>";
+      if (n.quote) html += '<p class="quote">“' + escapeHtml(n.quote) + '”</p>';
+      html += '<p class="section-label">' + connEdges.length + " connection" + (connEdges.length === 1 ? "" : "s") + "</p>";
+      html += '<div class="conn-list">';
+      connEdges.forEach(function (e) {
+        var outgoing = e.from === id;
+        var otherId = outgoing ? e.to : e.from;
+        var other = byId[otherId];
+        if (!other) return;
+        html += '<div class="conn-item" data-id="' + otherId + '">';
+        html += '<div class="row1"><span class="dir">' + (outgoing ? "→" : "←") + '</span><span class="target">' + escapeHtml(other.name) + '</span><span class="sim">' + e.similarity.toFixed(2) + "</span></div>";
+        html += '<span class="rel-badge"><span class="dot" style="background:' + relColor(e.type) + '"></span>' + REL_LABEL[e.type] + "</span>";
+        if (e.rationale) html += '<p class="rationale">' + escapeHtml(e.rationale) + "</p>";
+        html += "</div>";
+      });
+      html += "</div></div>";
+      detailEl.innerHTML = html;
+      detailEl.querySelectorAll(".conn-item").forEach(function (item) {
+        item.addEventListener("click", function () { selectNode(item.getAttribute("data-id")); });
+      });
+    }
+
+    function selectNode(id) {
+      network.selectNodes([id]);
+      network.focus(id, { scale: 1.3, animation: { duration: 400, easingFunction: "easeInOutQuad" } });
+      renderNodeDetail(id);
+    }
+
+    network.on("click", function (params) {
+      if (params.nodes.length) selectNode(params.nodes[0]);
+      else renderOverview();
+    });
+
+    renderOverview();
+  }
+})();
+</script>

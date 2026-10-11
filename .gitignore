@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+
+# Virtual environment
+venv/
+.venv/
+
+# Environment / secrets
+.env
+
+# macOS
+.DS_Store
+
+# Real project data -- uploaded sources, derived text, and the live DB.
+# Large, user-specific, and regenerable from the uploads themselves; never
+# meant to ride along in version control.
+data/sources/
+data/processed/
+data/metadata/*.db
+data/metadata/*.db-journal
+
+# Personal working notes (fuller, less-curated version of design_choices.md
+# and incident logs) -- deliberately not committed.
+Project Summary.txt
+
+# Claude Code's local project config (permissions/scratch state for this
+# tool, not part of the application).
+.claude/
